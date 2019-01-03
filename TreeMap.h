@@ -5,6 +5,7 @@
 #include <initializer_list>
 #include <stdexcept>
 #include <utility>
+
 #include <iostream>
 
 namespace aisdi
@@ -58,6 +59,7 @@ private:
     }
 
     // rotations, only when tree is not balanced
+    // left
     Node* rotationLeft(Node *subtree)
     {
         Node *father=subtree->goBack(), *subright=subtree->goRight(), *leaf;
@@ -99,7 +101,7 @@ private:
         }
     }
 
-    void rotationLeftDeleting(Node *subtree)
+    /*Node* rotationLeftDeleting(Node *subtree)
     {
         Node *subright=rotationLeft(subtree);
 
@@ -114,8 +116,28 @@ private:
             subtree->getBalanceFactor()=0;
         }
 
+        return subright;
+    }
+*/
+    Node* rotationLeftNormal(Node *subtree)// works only when bf subtree =-2
+    {
+        Node *subright=rotationLeft(subtree);
+
+        if(subright->getBalanceFactor()==-1)
+        {
+            subtree->getBalanceFactor()=0;
+            subright->getBalanceFactor()=0;
+        }
+        else
+        {
+            subtree->getBalanceFactor()=-1;
+            subright->getBalanceFactor()=1;
+        }
+
+        return subright;
     }
 
+    // right
     Node* rotationRight(Node *subtree)
     {
         Node *father=subtree->goBack(), *subleft=subtree->goLeft(), *leaf;
@@ -155,7 +177,7 @@ private:
         }
     }
 
-    void rotationRightDeleting(Node *subtree)
+    Node* rotationRightDeleting(Node *subtree)
     {
         Node *subleft=rotationRight(subtree);
 
@@ -170,9 +192,28 @@ private:
             subtree->getBalanceFactor()=0;
         }
 
-
+        return subleft;
     }
 
+    Node* rotationRightNormal(Node *subtree) // works only when bf subtree =2
+    {
+        Node *subleft=rotationRight(subtree);
+
+        if(subleft->getBalanceFactor()==1)
+        {
+            subtree->getBalanceFactor()=0;
+            subleft->getBalanceFactor()=0;
+        }
+        else
+        {
+            subtree->getBalanceFactor()=1;
+            subleft->getBalanceFactor()=-1;
+        }
+
+        return subleft;
+    }
+
+    // left-right
     Node* rotationLeftRight(Node *subtree, Node *subchild)
     {
         Node *father=subtree->goBack(), *subchild2, *leaf, *leaf2;
@@ -229,7 +270,7 @@ private:
         subchild2->getBalanceFactor()=0;
     }
 
-    void rotationLeftRightDeleting(Node *subtree)
+    Node* rotationLeftRightDeleting(Node *subtree)
     {
         Node  *subchild=subtree->goLeft(), *subchild2=rotationLeftRight(subtree, subchild);
 
@@ -250,8 +291,36 @@ private:
             subtree->getBalanceFactor()=0;
         }
         subchild2->getBalanceFactor()=0;
+
+        return subchild2;
     }
 
+    Node* rotationLeftRightNormal(Node *subtree) // works only when bf subtree =2
+    {
+        Node  *subchild=subtree->goLeft(), *subchild2=rotationLeftRight(subtree, subchild);
+
+        if(subchild2->getBalanceFactor()==-1)
+        {
+            subtree->getBalanceFactor()=0;
+            subchild->getBalanceFactor()=1;
+        }
+        else
+        if(subchild2->getBalanceFactor()==0)
+        {
+            subtree->getBalanceFactor()=0;
+            subchild->getBalanceFactor()=0;
+        }
+        else
+        {
+            subtree->getBalanceFactor()=-1;
+            subchild->getBalanceFactor()=0;
+        }
+        subchild2->getBalanceFactor()=0;
+
+        return subchild2;
+    }
+
+    // right-left
     Node* rotationRightLeft(Node *subtree, Node *subchild)
     {
         Node *father=subtree->goBack(), *subchild2, *leaf, *leaf2;
@@ -307,7 +376,7 @@ private:
         subchild2->getBalanceFactor()=0;
     }
 
-    void rotationRightLeftDeleting(Node *subtree)
+    Node* rotationRightLeftDeleting(Node *subtree)
     {
         Node *subchild=subtree->goRight(), *subchild2=rotationRightLeft(subtree, subchild);
 
@@ -328,6 +397,33 @@ private:
             subtree->getBalanceFactor()=-1;
         }
         subchild2->getBalanceFactor()=0;
+
+        return subchild2;
+    }
+
+    Node* rotationRightLeftNormal(Node *subtree) // works only when bf subtree =-2
+    {
+        Node *subchild=subtree->goRight(), *subchild2=rotationRightLeft(subtree, subchild);
+
+        if(subchild2->getBalanceFactor()==-1)
+        {
+            subtree->getBalanceFactor()=1;
+            subchild->getBalanceFactor()=0;
+        }
+        else
+        if(subchild2->getBalanceFactor()==0)
+        {
+            subtree->getBalanceFactor()=0;
+            subchild->getBalanceFactor()=0;
+        }
+        else
+        {
+            subtree->getBalanceFactor()=0;
+            subchild->getBalanceFactor()=-1;
+        }
+        subchild2->getBalanceFactor()=0;
+
+        return subchild2;
     }
 
     // adding node
@@ -440,16 +536,6 @@ private:
     }
 
     // other
-    void deleteNodeWithSetFatherAndCopyValue(Node *node, Node *prev)
-    {
-        if(prev!=nullptr) prev->changeValue(node->getValue());
-        if(node->goBack()!=nullptr)
-        {
-            if(node->isRight()) node->goBack()->changeRight(nullptr);
-            else node->goBack()->changeLeft(nullptr);
-        }
-        delete node;
-    }
 
     Node* deleteNodeRecursion(Node *node, Node *prev) // check for balance
     {
@@ -458,11 +544,11 @@ private:
         // first case
         if(node->goLeft()!=nullptr&&node->goRight()!=nullptr)
         {
-            recur=recur->operator++();
+            recur=recur->operator++();  // succeeding
             node->changeValue(recur->getValue());
             return deleteNodeRecursion(recur, node);
         }
-        else
+        else // found succeeding which can be deleted
         // second case
         if(node->goLeft()!=nullptr&&node->goRight()==nullptr)
         {
@@ -470,159 +556,174 @@ private:
             {
                 tmp->changeRight(node->goLeft());
                 node->goLeft()->changeBack(tmp);
+                node->getBalanceFactor()=-1;
             }
             else
             {
                 tmp->changeLeft(node->goLeft());
                 node->goLeft()->changeBack(tmp);
+                node->getBalanceFactor()=1;
             }
-            deleteNodeWithSetFatherAndCopyValue(node, prev);
-            return tmp;
+            if(prev!=nullptr) prev->changeValue(node->getValue());
+            return node;
         }
         else
         if(node->goLeft()==nullptr&&node->goRight()!=nullptr)
         {
+
             if(node->isRight())
             {
                 tmp->changeRight(node->goRight());
                 node->goRight()->changeBack(tmp);
+                node->getBalanceFactor()=-1;
             }
             else
             {
                 tmp->changeLeft(node->goRight());
                 node->goRight()->changeBack(tmp);
+                node->getBalanceFactor()=1;
             }
-            deleteNodeWithSetFatherAndCopyValue(node, prev);
-            return tmp;
+            if(prev!=nullptr) prev->changeValue(node->getValue());
+            return node;
         }
         else
         // third case
-        {
-            deleteNodeWithSetFatherAndCopyValue(node, prev);
-            return tmp;
-        }
-    }
-
-    void rebalanceDeletedTree(Node* node)
-    {
-        if(node!=guard)
-        {
-            Node *prev=node;
-            // 1. real deleted node was a leaf then at least father`s one child is nullptr,
-            // father have bf = -1, 0 or 1 (decided by nullptr)
-            // 2. real deleted node was in straight branch but that branch was limited,
-            // had height of 3 (from father) (father has another child) and now have only one member
-            // father have now bf=0
-
-            if(node->goLeft()==nullptr&&node->goRight()==nullptr) node->getBalanceFactor()=0;
-            // the real deleted node had to be where is nullptr now
-            else if(node->goLeft()!=nullptr&&node->goRight()==nullptr)
-            {
-                node->getBalanceFactor()=1;
-                return;
-            }
-            else if(node->goLeft()==nullptr&&node->goRight()!=nullptr)
-            {
-                node->getBalanceFactor()=-1;
-                return;
-            }
-            // when real deleted node was on branch
-            else node->getBalanceFactor()=0;
-
-            node=node->goBack();
-
-            while(node!=guard)
-            {
-                if(node->getBalanceFactor()==0) // from 0 to -1, 1
-                {
-                    if(prev->isRight()) node->getBalanceFactor()=1;
-                    else node->getBalanceFactor()=-1;
-                    return;
-                }
-                else
-                // from -1, 1 to 0 if it can be
-                if(node->getBalanceFactor()==1&&!(prev->isRight())) node->getBalanceFactor()=0;
-                else
-                if(node->getBalanceFactor()==-1&&prev->isRight()) node->getBalanceFactor()=0;
-                else
-                // with rotations, when deleted node was in lighter subtree
-                {
-                    if(node->getBalanceFactor()==-1&&node->goRight()->getBalanceFactor()==0)
-                    {
-                        rotationLeftDeleting(node);
-                        return;
-                    }
-                    else
-                    if(node->getBalanceFactor()==1&&node->goLeft()->getBalanceFactor()==0)
-                    {
-                        rotationRightDeleting(node);
-                        return;
-                    }
-                    else
-                    if(node->getBalanceFactor()==-1&&node->goRight()->getBalanceFactor()==-1) rotationLeftDeleting(node);
-                    else
-                    if(node->getBalanceFactor()==1&&node->goLeft()->getBalanceFactor()==1) rotationRightDeleting(node);
-                    else
-                    // bf of node and child are opposed
-                    if(node->getBalanceFactor()==-1&&node->goLeft()->getBalanceFactor()==1) rotationRightLeftDeleting(node);
-                    else rotationLeftRightDeleting(node);
-                }
-                prev=node;
-                node=node->goBack();
-            }
-        }
-    }
-
-
-        /*Node *tmp=node->goBack();
-        --size;
-        // first case
-        if(node->goLeft()==nullptr&&node->goRight()==nullptr)
         {
             if(node->isRight())
             {
                 tmp->changeRight(nullptr);
+                node->getBalanceFactor()=-1;
             }
             else
             {
                 tmp->changeLeft(nullptr);
+                node->getBalanceFactor()=1;
+            }
+            if(prev!=nullptr) prev->changeValue(node->getValue());
+            return node;
+        }
+    }
+
+    void rebalanceDeletedTree(Node* node)   // get node to delete
+    {
+        if(node->goBack()!=guard)
+        {
+            Node *prev=node->goBack();
+            int balancePrev=prev->getBalanceFactor();
+            bool isLess=false;
+
+            // information about whether the node is left or right
+            if(node->getBalanceFactor()==-1) // if node is right
+            {
+                ++prev->getBalanceFactor();
+                delete node;
+                if(prev->getBalanceFactor()==1) // if 0 or 2 then it changed height
+                {
+                    return;
+                }
+            }
+            else // node is left
+            {
+                --prev->getBalanceFactor();
+                delete node;
+                if(prev->getBalanceFactor()==-1) // if 0 or -2 then it changed height
+                {
+                    return;
+                }
+            }
+
+            if(prev->getBalanceFactor()==2)
+            {
+                if(prev->goLeft()!=nullptr&&prev->goLeft()->getBalanceFactor()==-1)
+                {
+                    prev=rotationLeftRightNormal(prev);
+                }
+                else
+                {
+                    prev=rotationRightNormal(prev);
+                }
+            }
+            else
+            if(prev->getBalanceFactor()==-2)
+            {
+                if(prev->goRight()!=nullptr&&prev->goRight()->getBalanceFactor()==1)
+                {
+                    prev=rotationRightLeftNormal(prev);
+                }
+                else
+                {
+                    prev=rotationLeftNormal(prev);
+                }
+            }
+
+            if((balancePrev==1||balancePrev==-1)&&prev->getBalanceFactor()==0) isLess=true;
+
+            node=prev->goBack();
+
+            while(node!=guard)
+            {
+                balancePrev=node->getBalanceFactor();
+                if(node->goRight()==prev) // if deleted was right
+                {
+                    if(isLess) ++node->getBalanceFactor();
+
+                    if(node->getBalanceFactor()==1) // if 0 or 2 then it changed height
+                    {
+                        return;
+                    }
+                }
+                else // deleted was left
+                {
+                    if(isLess) --node->getBalanceFactor();
+                    if(node->getBalanceFactor()==-1) // if 0 or -2 then it changed height
+                    {
+                        return;
+                    }
+                }
+
+                if(node->getBalanceFactor()==2)
+                {
+                    if(node->goLeft()!=nullptr&&node->goLeft()->getBalanceFactor()==-1)
+                    {
+                        node=rotationLeftRightNormal(node);
+                    }
+                    else
+                    {
+                        node=rotationRightNormal(node);
+                    }
+                }
+                else
+                if(node->getBalanceFactor()==-2)
+                {
+                    if(node->goRight()!=nullptr&&node->goRight()->getBalanceFactor()==1)
+                    {
+                        node=rotationRightLeftNormal(node);
+                    }
+                    else
+                    {
+                        node=rotationLeftNormal(node);
+                    }
+                }
+
+                if((balancePrev==1||balancePrev==-1)&&prev->getBalanceFactor()==0) isLess=true;
+                else isLess=false;
+                // if balancePrev==0, then remove node from left or right subtree do nothing
+                prev=node;
+                node=node->goBack();
             }
         }
         else
-        // second case
-        if((node->goLeft()==nullptr&&node->goRight!=nullptr))
         {
-            if(tmp->goLeft()==node) // left
+            if(node->goLeft()!=nullptr)
             {
-                tmp->changeLeft(node->goRight());
+                guard->changeLeft(node->goLeft());
             }
-            else       // right
-            {
-                tmp->changeRight(node->goRight());
-            }
-            node->goRight()->changeBack()=tmp;
+            else guard->changeLeft(node->goRight()); // at least one side is nullptr
+
+            delete node;
+            return;
         }
-        else
-        if(node->goLeft()!=nullptr&&node->goRight==nullptr)
-        {
-            if(tmp->goLeft()==node) // left
-            {
-                tmp->changeLeft(node->goLeft());
-            }
-            else       // right
-            {
-                tmp->changeRight(node->goLeft());
-            }
-            node->goLeft()->changeBack()=tmp;
-        }
-        else
-        // third case
-        {
-            tmp=++node;
-            node->getValue()=tmp->getValue();
-            node=tmp;
-        }
-        delete node;*/
+    }
 
     void deleteNode(Node *node)
     {
@@ -696,29 +797,25 @@ public:
 
     void print()
     {
-        print2(guard->goLeft());
+        std::cout << "Tree" << std::endl;
+        printBT("", guard->goLeft(), false);
     }
 
-    void print2(Node *node, int con=0)
+    void printBT(const std::string& prefix, Node *node, bool isLeft)
     {
-        if(node->goRight()!=nullptr)
+        if( node != nullptr )
         {
-            print2(node->goRight(), con+1);
-            std::cout <<  node->getValue().first << ":R" << node->goRight()->getValue().first << " BF: " << node->getBalanceFactor() << ":" << node->goRight()->getBalanceFactor() << std::endl;
-        }
+            std::cout << prefix;
 
-        for (int i=0; i<con; ++i)
-        {
-            //std::cout << "  ";
-        }
-        //std::cout << node->getValue().first << std::endl;
+            std::cout << (isLeft ? "├───" : "└───" );
 
-        if(node->goLeft()!=nullptr)
-        {
-            print2(node->goLeft(), con+1);
-            std::cout <<  node->getValue().first << ":L" << node->goLeft()->getValue().first << " BF: " << node->getBalanceFactor() << ":" << node->goLeft()->getBalanceFactor() << std::endl;
-        }
+            // print the value of the node
+            std::cout <<  node->getValue().first << ": " << node->getBalanceFactor() << std::endl;
 
+            // enter the next tree level - left and right branch
+            printBT( prefix + (isLeft ? "│   " : "    "), node->goLeft(), true);
+            printBT( prefix + (isLeft ? "│   " : "    "), node->goRight(), false);
+        }
     }
 
 public:
@@ -835,7 +932,8 @@ public:
     void remove(const key_type& key)
     {
         Node *tmp=findNode(key);
-        if(tmp==guard) throw std::out_of_range("No such pair find. Cannot remove. TreeMap.h");
+
+        if(tmp==guard) throw std::out_of_range("No such pair found. Cannot remove. TreeMap.h");
         deleteNode(tmp);
     }
 
@@ -872,14 +970,16 @@ public:
 
     iterator begin()
     {
-        iterator tmp(findFirstLeaf());
-        return tmp;
+        const_iterator tmp(findFirstLeaf());
+        iterator tmp2(tmp);
+        return tmp2;
     }
 
     iterator end()
     {
-        iterator tmp(findLastLeaf());
-        return tmp;
+        const_iterator tmp(findLastLeaf());
+        iterator tmp2(tmp);
+        return tmp2;
     }
 
     const_iterator cbegin() const
@@ -908,7 +1008,7 @@ public:
 template <typename KeyType, typename ValueType>
 class TreeMap<KeyType, ValueType>::ConstIterator
 {
-    friend class TreeMap;
+    friend TreeMap;
 
 private:
     Node *node;
@@ -926,10 +1026,9 @@ public:
     using iterator_category = std::bidirectional_iterator_tag;
     using value_type = typename TreeMap::value_type;
     using pointer = const typename TreeMap::value_type*;
-    //using value_type = std::pair<const key_type, mapped_type>;
 
     explicit ConstIterator()
-    {}
+    :node(nullptr) {}
 
     ConstIterator(const ConstIterator& other)
     :node(other.node) {}
@@ -951,10 +1050,10 @@ public:
 
     ConstIterator& operator--()
     {
-        if(node==nullptr||(node->goLeft()==nullptr&&node->goRight()==nullptr&&(node->goBack()==nullptr||(node->goBack()!=nullptr&&!(node->isRight())))))
-        throw std::out_of_range("Cannot decrement. TreeMap.h");
-
-        node=node->operator--();
+        if(node==nullptr) throw std::out_of_range("Cannot decrement. TreeMap.h");
+        Node *tmp=node->operator--();
+        if(tmp==nullptr) throw std::out_of_range("Cannot decrement. TreeMap.h");
+        node=tmp;
         return *this;
     }
 
@@ -969,16 +1068,12 @@ public:
     {
         if(node==nullptr||node->goBack()==nullptr) throw std::out_of_range("Cannot dereference. TreeMap.h");
 
-        reference tmp(node->getValue());
-        return tmp;
+        return node->getValue();
     }
 
     pointer operator->() const
     {
-        if(node==nullptr||node->goBack()==nullptr) throw std::out_of_range("Cannot dereference. TreeMap.h");
-
-        pointer tmp=&(node->getValue());
-        return tmp;
+        return &this->operator*();
     }
 
     bool operator==(const ConstIterator& other) const
@@ -987,7 +1082,7 @@ public:
 
         if(node->goBack()==nullptr&&(other.node)->goBack()==nullptr) return true;
 
-        if(node->getValue()==other.node->getValue()&&node->goBack()!=nullptr&&other.node->goBack()!=nullptr) return true;
+        if(node->goBack()!=nullptr&&other.node->goBack()!=nullptr&&node->getValue()==other.node->getValue()) return true;
 
         return false;
     }
@@ -1011,9 +1106,6 @@ public:
     Iterator(const ConstIterator& other)
         : ConstIterator(other)
     {}
-
-    Iterator(Node *joint)
-    :ConstIterator(joint) {}
 
     Iterator& operator++()
     {
@@ -1067,13 +1159,15 @@ private:
     Node *father, *left, *right;
     pair value;
 
+public:
+
     Node(const KeyType& key={}, Node *father=nullptr, Node *left=nullptr, Node *right=nullptr)
     :balanceFactor(0), father(father), left(left), right(right), value({key, ValueType{}}) {}
 
     Node(const normalPair& pairVariables, Node *father=nullptr, Node *left=nullptr, Node *right=nullptr)
     :balanceFactor(0), father(father), left(left), right(right), value(pairVariables) {}
 
-    inline bool isRight()
+    inline bool isRight() const
     {
         if(father->left==this) return false;
         return true;
@@ -1106,12 +1200,12 @@ private:
             return tmp;
         }
 
-        tmp=this->father;
-        while(!tmp->isRight())
+        tmp=this;
+        while(tmp->father!=nullptr&&!tmp->isRight())
         {
             tmp=tmp->father;
         }
-        return tmp;
+        return tmp->father;
     }
 
     inline void changeLeft(Node *newNode)
