@@ -43,12 +43,14 @@ private:
 
     size_type getPosition(const key_type& key) const // TO CHANGE, ONLY FOR THE DURATION OF TESTS !!!!!!!!!!!!!!!!!!
     {
+        //KeyType
         std::hash<int> hashFunction;
         return hashFunction(key)%resizeNumber.size();
     }
 
     size_type getPosition(const key_type& key, const NumberClipboard& numberToResize) const // TO CHANGE, ONLY FOR THE DURATION OF TESTS !!!!!!!!!!!!!!!!!!
     {
+        //KeyType
         std::hash<int> hashFunction;
         return hashFunction(key)%numberToResize.size();
     }
@@ -635,6 +637,7 @@ public:
         }
         else
         {
+            // because it cannot be the same keys by definition
             if(first.first==value.first) throw std::out_of_range("Cannot add. Key value found. HashMap.h");
 
             if(additional==nullptr)

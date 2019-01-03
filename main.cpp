@@ -250,7 +250,8 @@ void performTest(const iniList& initialVal, const size_t loop, std::string fileN
 int main(int argc, char** argv)
 {
     std::cout << "HELLO WORLD" << std::endl;
-    const std::size_t repeatCount = argc > 1 ? std::atoll(argv[1]) : 1000;
+    const std::size_t repeatCount = argc > 1 ? std::atoll(argv[1]) : 10000;
+    std::cout << repeatCount << std::endl;
 
     std::vector<std::pair<int, int>> testVal;
     std::vector<std::string> fileNamesT;
@@ -293,8 +294,11 @@ int main(int argc, char** argv)
 
         testVal.push_back({i+999, rand()%7000});
     }
+    /*Tree<int, int> tmp2={{6,2}, {5,8}, {4,3}, {7,6}, {55, -9}, {8,99}, {2,7}, {3,22}, {0,3}, {77,0}};
+    Tree<std::string, int> tmp={{"Jan",2}, {"Mirek",8}, {"Zdzislaw",3}, {"Malgosia",6}, {"Janusz", -9}, {"Marcin",99}, {"Seba",7}, {"Michal",22}, {"Joanna",3}, {"Marcepan",0}};
+    tmp2.print();
+    tmp.print();*/
 
-    //Tree<int, int> tmp={{8,48},{9,45}};
 
 
 

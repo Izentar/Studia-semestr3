@@ -14,7 +14,7 @@ template <typename KeyType, typename ValueType>
 class TreeMap
 {
     class Node;
-private:
+private:    // variables
     std::size_t size;
     Node *guard;   // end,    indicates only the left child
 
@@ -101,24 +101,6 @@ private:
         }
     }
 
-    /*Node* rotationLeftDeleting(Node *subtree)
-    {
-        Node *subright=rotationLeft(subtree);
-
-        if(subright->getBalanceFactor()==0)
-        {
-            subright->getBalanceFactor()=1;
-            subtree->getBalanceFactor()=-1;
-        }
-        else
-        {
-            subright->getBalanceFactor()=0;
-            subtree->getBalanceFactor()=0;
-        }
-
-        return subright;
-    }
-*/
     Node* rotationLeftNormal(Node *subtree)// works only when bf subtree =-2
     {
         Node *subright=rotationLeft(subtree);
@@ -177,24 +159,6 @@ private:
         }
     }
 
-    Node* rotationRightDeleting(Node *subtree)
-    {
-        Node *subleft=rotationRight(subtree);
-
-        if(subleft->getBalanceFactor()==0)
-        {
-            subleft->getBalanceFactor()=-1;
-            subtree->getBalanceFactor()=0;
-        }
-        else
-        {
-            subleft->getBalanceFactor()=0;
-            subtree->getBalanceFactor()=0;
-        }
-
-        return subleft;
-    }
-
     Node* rotationRightNormal(Node *subtree) // works only when bf subtree =2
     {
         Node *subleft=rotationRight(subtree);
@@ -222,6 +186,7 @@ private:
         subchild2=subchild->goRight();
 
         if(subchild2==nullptr) throw std::out_of_range("rotationLeftRight(Node *subtree) -> no left->right child. TreeMap.h");
+
         leaf=subchild2->goLeft();
         leaf2=subchild2->goRight();
 
@@ -242,7 +207,7 @@ private:
         subtree->changeBack(subchild2);
         subtree->changeLeft(leaf2);
         if(leaf!=nullptr) leaf->changeBack(subchild);
-        if(leaf2!=nullptr) leaf->changeBack(subtree);
+        if(leaf2!=nullptr) leaf2->changeBack(subtree);
 
         return subchild2;
     }
@@ -268,31 +233,6 @@ private:
             subchild->getBalanceFactor()=0;
         }
         subchild2->getBalanceFactor()=0;
-    }
-
-    Node* rotationLeftRightDeleting(Node *subtree)
-    {
-        Node  *subchild=subtree->goLeft(), *subchild2=rotationLeftRight(subtree, subchild);
-
-        if(subchild2->getBalanceFactor()==0)
-        {
-            subtree->getBalanceFactor()=0;
-            subchild->getBalanceFactor()=0;
-        }
-        else
-        if(subchild2->getBalanceFactor()==-1)
-        {
-            subtree->getBalanceFactor()=1;
-            subchild->getBalanceFactor()=0;
-        }
-        else
-        {
-            subchild->getBalanceFactor()=-1;
-            subtree->getBalanceFactor()=0;
-        }
-        subchild2->getBalanceFactor()=0;
-
-        return subchild2;
     }
 
     Node* rotationLeftRightNormal(Node *subtree) // works only when bf subtree =2
@@ -374,31 +314,6 @@ private:
             subchild->getBalanceFactor()=-1;
         }
         subchild2->getBalanceFactor()=0;
-    }
-
-    Node* rotationRightLeftDeleting(Node *subtree)
-    {
-        Node *subchild=subtree->goRight(), *subchild2=rotationRightLeft(subtree, subchild);
-
-        if(subchild2->getBalanceFactor()==0)
-        {
-            subtree->getBalanceFactor()=0;
-            subchild->getBalanceFactor()=0;
-        }
-        else
-        if(subchild2->getBalanceFactor()==-1)
-        {
-            subtree->getBalanceFactor()=0;
-            subchild->getBalanceFactor()=1;
-        }
-        else
-        {
-            subchild->getBalanceFactor()=0;
-            subtree->getBalanceFactor()=-1;
-        }
-        subchild2->getBalanceFactor()=0;
-
-        return subchild2;
     }
 
     Node* rotationRightLeftNormal(Node *subtree) // works only when bf subtree =-2
@@ -545,7 +460,7 @@ private:
         if(node->goLeft()!=nullptr&&node->goRight()!=nullptr)
         {
             recur=recur->operator++();  // succeeding
-            node->changeValue(recur->getValue());
+            node->copyNode(recur);
             return deleteNodeRecursion(recur, node);
         }
         else // found succeeding which can be deleted
@@ -564,7 +479,10 @@ private:
                 node->goLeft()->changeBack(tmp);
                 node->getBalanceFactor()=1;
             }
-            if(prev!=nullptr) prev->changeValue(node->getValue());
+            if(prev!=nullptr)
+            {
+                prev->copyNode(node);
+            }
             return node;
         }
         else
@@ -583,7 +501,10 @@ private:
                 node->goRight()->changeBack(tmp);
                 node->getBalanceFactor()=1;
             }
-            if(prev!=nullptr) prev->changeValue(node->getValue());
+            if(prev!=nullptr)
+            {
+                prev->copyNode(node);
+            }
             return node;
         }
         else
@@ -599,7 +520,10 @@ private:
                 tmp->changeLeft(nullptr);
                 node->getBalanceFactor()=1;
             }
-            if(prev!=nullptr) prev->changeValue(node->getValue());
+            if(prev!=nullptr)
+            {
+                prev->copyNode(node);
+            }
             return node;
         }
     }
@@ -793,14 +717,6 @@ private:
         return guard;
     }
 
-public:
-
-    void print()
-    {
-        std::cout << "Tree" << std::endl;
-        printBT("", guard->goLeft(), false);
-    }
-
     void printBT(const std::string& prefix, Node *node, bool isLeft)
     {
         if( node != nullptr )
@@ -818,7 +734,15 @@ public:
         }
     }
 
-public:
+public: // for testing
+
+    void print()
+    {
+        std::cout << "Tree" << std::endl;
+        printBT("", guard->goLeft(), false);
+    }
+
+public: // class methods
 
     TreeMap()
     :size(0), guard(new Node()) {}
@@ -1243,11 +1167,10 @@ public:
         return value;
     }
 
-    inline void changeValue(const pair& nodeValue)
+    void copyNode(Node *toCopy) // pointers remain where they were
     {
-        // ugly cast, yet reduces code runtime.
-        const_cast<KeyType&>(value.first)=nodeValue.first;
-        value.second=nodeValue.second;
+        const_cast<KeyType&>(value.first)=toCopy->value.first;
+        value.second=toCopy->value.second;
     }
 
     inline int& getBalanceFactor()
